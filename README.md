@@ -1,100 +1,14 @@
 # Project
 Assessment 
-Implementation roadmap — Detailed milestones, tasks, dependencies, and estimated effort
-
-Assumptions
-- Prototype is standalone (no integration with COLA).
-- Hosted on Azure (per org context) unless you specify otherwise.
-- No sensitive data storage for prototype; uploads ephemeral.
-- Use open-source OCR (Tesseract) + optional cloud ML for improved extraction if firewall allows.
-- Team: 1 product owner (PO), 1 tech lead, 2 backend engineers, 1 frontend engineer, 1 ML engineer, 1 QA, 1 UX designer. Adjust estimates if team size differs.
-
-Summary timeline
-- Total: 8–10 weeks (MVP for agent workflow + basic batch and UX). Phases: Discovery (1 wk), Infra + Core OCR (2 wk), Extractors & Rules (2 wk), UI + Batch + Performance (2 wk), QA & Launch (1–2 wk).
-
-Milestone 0 — Discovery & setup (1 week)
-- Goals: finalize scope, success criteria, test data, environment constraints (firewall/API), repo and CI.
-- Tasks:
-  - PO: confirm required fields & validation rules (Sarah/Jenny input). (1 day)
-  - Tech lead: confirm deployment constraints & Azure subscription, networking/firewall limitations. (1 day)
-  - ML engineer + UX: collect/generate 30 representative label images (simple + noisy). (2 days)
-  - Setup repo, CI pipeline, basic README. (1 day)
-- Deliverables: project plan, sample dataset, repo skeleton.
-- Effort: 5 person-days.
-
-Milestone 1 — Infra & Ingestion API + Image storage (1 week)
-- Goals: enable fast uploads, single and batch, ephemeral storage.
-- Tasks:
-  - Backend: implement upload endpoints (single, batch), validation, and storage (blob with TTL). (3 days)
-  - Backend: implement lightweight job queue for processing (Redis/RabbitMQ or Azure Queue). (1 day)
-  - DevOps: deploy dev environment on Azure (App Service or containers + Blob Storage). (1 day)
-- Deliverables: upload API, queue wiring, deployed dev env.
-- Effort: 7 person-days.
-
-Milestone 2 — OCR pipeline (2 weeks)
-- Goals: reliable, fast text extraction with fallback strategy for noisy images.
-- Tasks:
-  - ML: integrate Tesseract OCR as primary local engine, tuned for label fonts and layout. (3 days)
-  - ML: implement pre-processing (deskew, denoise, contrast adjust) pipeline using OpenCV. (3 days)
-  - ML: optional Cloud OCR adapter (Azure Cognitive Services) with toggle for environments that allow outbound calls. (2 days)
-  - Backend: orchestrate OCR jobs, cache results, return within target latency (<=5s per simple label). (2 days)
-- Deliverables: OCR service, pre-processing module, adapter switch, performance benchmark.
-- Effort: 14 person-days.
-
-Milestone 3 — Field extraction & validation rules (2 weeks)
-- Goals: map OCR output to required fields and apply TTB validation rules (exact government warning, ABV format, net contents, etc.).
-- Tasks:
-  - ML/backend: implement field extraction heuristics:
-    - Regex-based parsers for ABV, net contents, proof. (2 days)
-    - Named-entity / layout heuristics for brand, class/type, bottler address. (3 days)
-  - Rules engine: encode validation rules with severity levels (pass, warn, fail) and fuzzy matching thresholds for brand name (to support Dave’s examples). (3 days)
-  - UI contract: design JSON response format for frontend (fields, confidences, snippets, bounding boxes). (2 days)
-- Deliverables: extraction service, validation engine, API spec.
-- Effort: 14 person-days.
-
-Milestone 4 — Agent UI & UX (2 weeks)
-- Goals: simple, clear interface for agents (single-label review + batch), accessible for low-tech users.
-- Tasks:
-  - UX designer: create low-fidelity wireframes and a simple high-contrast UI with large buttons and explicit checklist flow. (3 days)
-  - Frontend: implement label review screen: image, auto-filled fields with confidence, quick accept/edit field inline, highlight mismatches. (5 days)
-  - Frontend: implement batch upload view with queue and bulk-accept workflows. (3 days)
-  - Frontend/backend: implement quick keyboard shortcuts and 5-second target for simple accept flow. (2 days)
-- Deliverables: working frontend prototype, usability-first layout.
-- Effort: 15 person-days.
-
-Milestone 5 — Performance, UX polish, and accessibility (1 week)
-- Goals: meet the 5-second responsiveness requirement, make UI accessible, handle edge cases.
-- Tasks:
-  - ML/backend: optimize pipeline (caching, parallelism), measure latency, set timeouts and graceful fallbacks. (3 days)
-  - Frontend: accessibility audit (large fonts, high contrast, simple navigation), minor UI polish. (2 days)
-- Deliverables: performance report, accessibility checklist met.
-- Effort: 7 person-days.
-
-Milestone 6 — QA, user testing, & iterations (1–2 weeks)
-- Goals: bug fixes, refine fuzzy matching thresholds, incorporate feedback from 3–5 agents.
-- Tasks:
-  - QA: automated tests (unit, integration), regression tests on dataset. (3 days)
-  - Conduct 2 rounds of user testing with agents (observe tasks, measure time saved, collect feedback). (3–5 days)
-  - Implement prioritized fixes and tweak rules. (2–5 days)
-- Deliverables: tested MVP, user feedback document, final adjustments.
-- Effort: 10–20 person-days.
-
-Milestone 7 — Demo, docs, and handoff (3 days)
-- Goals: deploy a stable demo instance, prepare README and runbook, and deliver presentation.
-- Tasks:
-  - DevOps: deploy demo instance, configure access controls for reviewers. (1 day)
-  - PO/Tech lead: prepare demo script, short video, and runbook for next steps. (1 day)
-  - Repo: finalize README, architecture notes, and assumptions. (1 day)
-- Deliverables: live demo URL, docs, handoff package.
-- Effort: 3 person-days.
-
-Total estimated effort (rounded)
-- Core MVP: ~57–80 person-days depending on iteration cycles and cloud OCR inclusion.
-- With a 6-person implementation team working in parallel, calendar time ~8–10 weeks.
-
-Risks & mitigation
-- Firewall blocks cloud OCR: provide local OCR fallback (Tesseract) and design adapter to enable cloud OCR where permitted.
-- Latency >5s for real-world noisy images: optimize pre-processing, add lightweight confidence-based fast-path (if high confidence accept), and queue heavy processing for manual review.
-- False positives/negatives on brand matching: expose fuzzy-match threshold to agents, allow easy override and feedback loop to retrain heuristics.
-- Accessibility/tech comfort: conduct quick usability sessions with older agents (e.g., Dave) early and iterate.
-
+markdown # TTB Label Compliance Prototype  ## Project Overview This prototype aims to streamline the review process of alcohol beverage label applications for the TTB (Alcohol and Tobacco Tax and Trade Bureau). By utilizing OCR (Optical Character Recognition) technology and machine learning, the project seeks to reduce manual verification time and enhance accuracy in compliance checks.  ## Background & Stakeholder Context The TTB reviews approximately 150,000 label applications annually with a team of 47 agents. The current review process involves manual verification of label details against application information, which can be time-consuming and prone to human error. The goal of this project is to automate routine tasks, provide a user-friendly interface, and enable batch processing to improve efficiency.  ### Key Stakeholder Insights: - **Sarah Chen, Deputy Director of Label Compliance**: Emphasized the need for a fast, user-friendly tool that accommodates varying tech comfort levels among agents and allows for batch uploads. - **Marcus Williams, IT Systems Administrator**: Highlighted constraints related to the current infrastructure and security considerations for prototype development. - **Dave Morrison, Senior Compliance Agent**: Stressed the importance of nuanced judgment in label review and the need for the tool to simplify rather than complicate the review process. - **Jenny Park, Junior Compliance Agent**: Expressed excitement about modernization and noted the challenges with verifying mandatory warning statements on labels.  ## Technical Requirements The application must handle the following fields for compliance: - Brand Name - Class/Type Designation - Alcohol Content - Net Contents - Name and Address of Bottler/Producer - Country of Origin for Imports - Government Health Warning Statement  ## Sample Label Here’s an example of a distilled spirits label that the application should process: - **Brand Name**: "OLD TOM DISTILLERY" - **Class/Type**: "Kentucky Straight Bourbon Whiskey" - **Alcohol Content**: "45% Alc./Vol. (90 Proof)" - **Net Contents**: "750 mL" - **Government Warning**: [Standard government warning text]  ## Technology Stack - **Frontend**: React.js - **Backend**: Node.js, Express - **OCR**: Tesseract.js (for local OCR processing) - **Cloud Services**: Azure (for deployment and storage) - **Database**: Azure Blob Storage for temporary image storage - **Queueing**: Redis or Azure Queue for managing processing jobs  ## Setup Instructions  ### Prerequisites - Node.js (v14 or higher) - npm (Node package manager) - Azure account (for deployment and storage)  ### Installation 1. **Clone the Repository**:    bash
+   git clone ￼
+   cd ttb-label-compliance-prototype
+    2. **Install Dependencies**:   bash
+   npm install
+    3. **Environment Variables**:    Create a `.env` file in the root directory and add the following variables:   plaintext
+   PORT=3000
+   AZURE_STORAGE_CONNECTION_STRING=your_connection_string
+   REDIS_URL=your_redis_url (if using Redis for queueing)
+    4. **Run the Application**:   bash
+   npm start
+      The application will be available at `http://localhost:3000`.  ## Usage Instructions 1. **Upload a Label**: Use the upload section to select and upload a label image. You can also upload multiple images for batch processing. 2. **Review Results**: After processing, extracted fields will be displayed along with confidence levels. Review and accept or edit as required. 3. **Validation Feedback**: The system highlights any validation issues based on TTB requirements.  ## Deliverables ￼   Source Code Repository (GitHub or similar) ￼   All source code ￼   README with setup and run instructions ￼   Brief documentation of approach, tools used, assumptions made ￼   Deployed Application URL ￼   Working prototype accessible for testing  ## Evaluation Criteria ￼   Correctness and completeness of core requirements ￼   Code quality and organization ￼   Appropriate technical choices for the scope ￼   User experience and error handling ￼   Attention to requirements and creative problem-solving  ## Acknowledgments ￼   Tesseract.js for OCR capabilities ￼   Azure for cloud services and hosting  ## License This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.  ## Contact For questions or feedback, please reach out to [Your Name] at [Your Email]. 
